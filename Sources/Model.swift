@@ -34,7 +34,7 @@ struct Config: Codable {
     var client = ""
     var project = ""
     var version = 1
-    var template = "{name}_{format}_v{version}"
+    var template = "{name}_{format}_{version}"
     var junkWords = "final, finalfinal, fnl, export, exported, copy, untitled, edit, render, approved"
     var formats = Format.defaults
     var fit = FitMode.fill
@@ -77,6 +77,7 @@ extension Config {
         load(.template, into: &template)
         template = template.replacingOccurrences(of: "{client}", with: "")
             .replacingOccurrences(of: "{project}", with: "")
+            .replacingOccurrences(of: "v{version}", with: "{version}")
             .replacingOccurrences(of: #"([_\-.])[_\-.]+"#, with: "$1", options: .regularExpression)
             .trimmingCharacters(in: CharacterSet(charactersIn: "_-. "))
         load(.junkWords, into: &junkWords)

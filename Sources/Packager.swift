@@ -269,7 +269,7 @@ final class Packager: ObservableObject {
             "name": Naming.slug(asset.name),
             "format": Naming.slug(format.tag),
             "size": format.native ? asset.size.map { "\(Int($0.width))x\(Int($0.height))" } ?? "" : format.sizeText,
-            "version": String(c.version),
+            "version": c.includeVersionInName ? "v\(c.version)" : "",
             "date": date,
             "n": String(format: "%02d", n),
         ])
