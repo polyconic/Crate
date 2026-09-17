@@ -34,6 +34,7 @@ final class Packager: ObservableObject {
     @Published var message = ""
     @Published var output: URL?
     @Published var dropTargeted = false
+    @Published var batchName = ""
 
     var interactive = true
     private var outputParent: URL?
@@ -232,6 +233,16 @@ final class Packager: ObservableObject {
                 assets[i].duration = probed.duration
                 assets[i].audioInfo = probed.audioInfo
             }
+        }
+    }
+
+    func applyBatchName() {
+        let base = batchName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !base.isEmpty, !assets.isEmpty else { return }
+        let width = max(2, String(assets.count).count)
+        for i in assets.indices {
+            assets[i].name = "\(base) \(String(format: "%0\(width)d", i + 1))"
+            assets[i].edited = true
         }
     }
 

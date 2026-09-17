@@ -67,6 +67,7 @@ struct AssetList: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            BatchNameBar()
             HStack(spacing: 12) {
                 Text("Source").frame(width: 250, alignment: .leading).padding(.leading, 26)
                 Text("Name → output").frame(alignment: .leading)
@@ -95,6 +96,25 @@ struct AssetList: View {
             }
             .listStyle(.inset(alternatesRowBackgrounds: true))
         }
+    }
+}
+
+struct BatchNameBar: View {
+    @EnvironmentObject var packager: Packager
+
+    var body: some View {
+        HStack(spacing: 8) {
+            TextField("Name every file the same, e.g. \"Denver Rooftop Set\" → …-1, …-2, …-3",
+                      text: $packager.batchName)
+                .textFieldStyle(.roundedBorder)
+                .disabled(packager.running)
+                .onSubmit { packager.applyBatchName() }
+            Button("Apply to All") { packager.applyBatchName() }
+                .disabled(packager.running || packager.batchName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 10)
+        .padding(.bottom, 4)
     }
 }
 
