@@ -34,7 +34,7 @@ struct Config: Codable {
     var client = ""
     var project = ""
     var version = 1
-    var template = "{project}_{name}_{format}_v{version}"
+    var template = "{name}_{format}_v{version}"
     var junkWords = "final, finalfinal, fnl, export, exported, copy, untitled, edit, render, approved"
     var formats = Format.defaults
     var fit = FitMode.fill
@@ -53,13 +53,16 @@ struct Config: Codable {
     var audioCD = true
     var finderImmediate = false
     var revealWhenDone = false
+    var includeProjectInName = true
+    var includeVersionInName = true
 }
 
 extension Config {
     private enum CodingKeys: String, CodingKey {
         case client, project, version, template, junkWords, formats, fit, padWhite,
              resize, subfolders, manifest, keepFolder, autoVersion, stripMetadata, webFriendly,
-             sizeCap, sizeCapMB, audio, audioMP3, audioCD, finderImmediate, revealWhenDone
+             sizeCap, sizeCapMB, audio, audioMP3, audioCD, finderImmediate, revealWhenDone,
+             includeProjectInName, includeVersionInName
     }
 
     init(from decoder: Decoder) throws {
@@ -73,6 +76,7 @@ extension Config {
         load(.version, into: &version)
         load(.template, into: &template)
         template = template.replacingOccurrences(of: "{client}", with: "")
+            .replacingOccurrences(of: "{project}", with: "")
             .replacingOccurrences(of: #"([_\-.])[_\-.]+"#, with: "$1", options: .regularExpression)
             .trimmingCharacters(in: CharacterSet(charactersIn: "_-. "))
         load(.junkWords, into: &junkWords)
@@ -93,6 +97,8 @@ extension Config {
         load(.audioCD, into: &audioCD)
         load(.finderImmediate, into: &finderImmediate)
         load(.revealWhenDone, into: &revealWhenDone)
+        load(.includeProjectInName, into: &includeProjectInName)
+        load(.includeVersionInName, into: &includeVersionInName)
     }
 }
 

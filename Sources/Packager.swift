@@ -116,7 +116,7 @@ final class Packager: ObservableObject {
     }
 
     func nextFreeVersion() -> Int? {
-        guard let parent = outputParent,
+        guard settings.config.includeVersionInName, let parent = outputParent,
               let names = try? FileManager.default.contentsOfDirectory(atPath: parent.path)
         else { return nil }
         let prefix = deliveryName(0).dropLast(1)
@@ -266,7 +266,6 @@ final class Packager: ObservableObject {
     private func fileStem(_ asset: Asset, _ format: Format, _ n: Int, _ date: String) -> String {
         let c = settings.config
         return Naming.render(c.template, [
-            "project": Naming.slug(c.project),
             "name": Naming.slug(asset.name),
             "format": Naming.slug(format.tag),
             "size": format.native ? asset.size.map { "\(Int($0.width))x\(Int($0.height))" } ?? "" : format.sizeText,
@@ -280,27 +279,45 @@ final class Packager: ObservableObject {
         ext.isEmpty ? stem : "\(stem).\(ext)"
     }
 
-    func deliveryName(_ version: Int) -> String {
-        let client = settings.config.client
-            .replacingOccurrences(of: #"[/:\\]"#, with: "-", options: .regularExpression)
+    private func sanitizeForFolder(_ s: String) -> String {
+        s.replacingOccurrences(of: #"[/:\\]"#, with: "-", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: ".")))
-        return "\(client.isEmpty ? "Delivery" : client) v\(version)"
+    }
+
+    func deliveryName(_ version: Int) -> String {
+        let cfg = settings.config
+        let client = sanitizeForFolder(cfg.client)
+        var parts = [client.isEmpty ? "Delivery" : client]
+        if cfg.includeProjectInName {
+            let project = sanitizeForFolder(cfg.project)
+            if !project.isEmpty { parts.append(project) }
+        }
+        if cfg.includeVersionInName {
+            parts.append("v\(version)")
+        }
+        return parts.joined(separator: " ")
     }
 
     private enum Conflict { case bump, replace }
 
-    private func resolveConflict(_ root: URL, next: Int, canReplace: Bool) -> Conflict? {
+    private func resolveConflict(_ root: URL, next: Int?, canReplace: Bool) -> Conflict? {
         guard interactive else { return nil }
         let alert = NSAlert()
         alert.messageText = "“\(root.lastPathComponent)” already exists"
-        alert.informativeText = canReplace
-            ? "Export as v\(next) instead, or move the existing delivery to the Trash and replace it?"
-            : "That's the folder you're packaging from. Export as v\(next) instead?"
-        alert.addButton(withTitle: "Export as v\(next)")
+        if let next {
+            alert.informativeText = canReplace
+                ? "Export as v\(next) instead, or move the existing delivery to the Trash and replace it?"
+                : "That's the folder you're packaging from. Export as v\(next) instead?"
+            alert.addButton(withTitle: "Export as v\(next)")
+        } else {
+            alert.informativeText = canReplace
+                ? "Turn on Version to export a new copy, or move the existing delivery to the Trash and replace it?"
+                : "That's the folder you're packaging from. Turn on Version to export under a new name."
+        }
         if canReplace { alert.addButton(withTitle: "Replace") }
         alert.addButton(withTitle: "Cancel")
         switch alert.runModal() {
-        case .alertFirstButtonReturn: return .bump
+        case .alertFirstButtonReturn: return next != nil ? .bump : (canReplace ? .replace : nil)
         case .alertSecondButtonReturn: return canReplace ? .replace : nil
         default: return nil
         }
@@ -321,12 +338,16 @@ final class Packager: ObservableObject {
         }
         var root = parent.appendingPathComponent(deliveryName(settings.config.version))
         if exists(root) {
-            var next = settings.config.version + 1
-            while exists(parent.appendingPathComponent(deliveryName(next))) { next += 1 }
+            var next: Int?
+            if settings.config.includeVersionInName {
+                var candidate = settings.config.version + 1
+                while exists(parent.appendingPathComponent(deliveryName(candidate))) { candidate += 1 }
+                next = candidate
+            }
             switch resolveConflict(root, next: next, canReplace: !isSource(root)) {
             case .bump:
-                settings.config.version = next
-                root = parent.appendingPathComponent(deliveryName(next))
+                settings.config.version = next!
+                root = parent.appendingPathComponent(deliveryName(next!))
             case .replace:
                 do {
                     for url in [root, root.appendingPathExtension("zip")] where fm.fileExists(atPath: url.path) {
@@ -339,7 +360,9 @@ final class Packager: ObservableObject {
             case nil:
                 message = interactive
                     ? "Cancelled."
-                    : "\(root.lastPathComponent) already exists — bump the version."
+                    : settings.config.includeVersionInName
+                        ? "\(root.lastPathComponent) already exists — bump the version."
+                        : "\(root.lastPathComponent) already exists — turn on Version, or delete/rename it first."
                 return
             }
         }

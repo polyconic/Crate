@@ -1,7 +1,7 @@
 import Foundation
 
 enum Naming {
-    static let tokens = ["project", "name", "format", "size", "version", "date", "n"]
+    static let tokens = ["name", "format", "size", "version", "date", "n"]
 
     static func clean(_ stem: String, junk: Set<String>) -> String {
         var s = stem

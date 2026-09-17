@@ -259,17 +259,25 @@ struct SettingsPane: View {
         Form {
             Section {
                 TextField("Client", text: $settings.config.client, prompt: Text("Acme"))
-                TextField("Project", text: $settings.config.project, prompt: Text("spring-campaign"))
-                Stepper(value: $settings.config.version, in: 1...999) {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text("v\(settings.config.version)" + (settings.config.autoVersion ? " · auto" : ""))
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                    }
+                HStack {
+                    TextField("Project", text: $settings.config.project, prompt: Text("spring-campaign"))
+                    Toggle("Include", isOn: $settings.config.includeProjectInName)
+                        .toggleStyle(.checkbox)
                 }
-                .disabled(settings.config.autoVersion)
+                HStack {
+                    Stepper(value: $settings.config.version, in: 1...999) {
+                        HStack {
+                            Text("Version")
+                            Spacer()
+                            Text("v\(settings.config.version)" + (settings.config.autoVersion ? " · auto" : ""))
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .disabled(settings.config.autoVersion || !settings.config.includeVersionInName)
+                    Toggle("Include", isOn: $settings.config.includeVersionInName)
+                        .toggleStyle(.checkbox)
+                }
                 Toggle(isOn: $settings.config.autoVersion) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Auto version")
@@ -278,10 +286,11 @@ struct SettingsPane: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .disabled(!settings.config.includeVersionInName)
             } header: {
                 Text("Job")
             } footer: {
-                Text("Delivered as “\(packager.deliveryName(settings.config.version))”. The client name isn't used in file names.")
+                Text("Delivered as “\(packager.deliveryName(settings.config.version))”. Client, project and version only name the delivery folder/zip — never individual files.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
