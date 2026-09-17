@@ -1,10 +1,10 @@
 # Crate
 
 This already exists, but I needed something that fit the way I organize better. 
-Most apps don't function exactly the way I need them to. Also resizing and 
+Most apps don't function exactly how I need them to. Also resizing and 
 file metadata removal is a nice bonus. - GE
 
-A client delivery packager for macOS. Drop in a folder of final exports, and
+This is a client delivery packager for macOS. Drop in a folder of final exports, and
 Crate renames everything to a consistent pattern, optionally resizes it for
 the platforms you deliver to, and zips it up.
 
