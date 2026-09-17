@@ -265,7 +265,7 @@ final class Packager: ObservableObject {
 
     private func fileStem(_ asset: Asset, _ format: Format, _ n: Int, _ date: String) -> String {
         let c = settings.config
-        return Naming.render(c.template, [
+        let stem = Naming.render(c.template, [
             "name": Naming.slug(asset.name),
             "format": Naming.slug(format.tag),
             "size": format.native ? asset.size.map { "\(Int($0.width))x\(Int($0.height))" } ?? "" : format.sizeText,
@@ -273,6 +273,7 @@ final class Packager: ObservableObject {
             "date": date,
             "n": String(format: "%02d", n),
         ])
+        return Naming.applyCase(stem, c.caseStyle)
     }
 
     private func join(_ stem: String, _ ext: String) -> String {

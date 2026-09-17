@@ -30,6 +30,18 @@ enum FitMode: String, Codable, CaseIterable {
     case fill, fit
 }
 
+enum CaseStyle: String, Codable, CaseIterable {
+    case lower, asTyped, upper
+
+    var label: String {
+        switch self {
+        case .lower: "lowercase"
+        case .asTyped: "As typed"
+        case .upper: "UPPERCASE"
+        }
+    }
+}
+
 struct Config: Codable {
     var client = ""
     var project = ""
@@ -55,6 +67,7 @@ struct Config: Codable {
     var revealWhenDone = false
     var includeProjectInName = true
     var includeVersionInName = true
+    var caseStyle = CaseStyle.asTyped
 }
 
 extension Config {
@@ -62,7 +75,7 @@ extension Config {
         case client, project, version, template, junkWords, formats, fit, padWhite,
              resize, subfolders, manifest, keepFolder, autoVersion, stripMetadata, webFriendly,
              sizeCap, sizeCapMB, audio, audioMP3, audioCD, finderImmediate, revealWhenDone,
-             includeProjectInName, includeVersionInName
+             includeProjectInName, includeVersionInName, caseStyle
     }
 
     init(from decoder: Decoder) throws {
@@ -100,6 +113,7 @@ extension Config {
         load(.revealWhenDone, into: &revealWhenDone)
         load(.includeProjectInName, into: &includeProjectInName)
         load(.includeVersionInName, into: &includeVersionInName)
+        load(.caseStyle, into: &caseStyle)
     }
 }
 

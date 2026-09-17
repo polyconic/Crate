@@ -9,9 +9,10 @@ enum Naming {
         s = s.replacingOccurrences(of: #"(?i)\bcopy\s*\d+\b"#, with: "", options: .regularExpression)
         s = s.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression)
         let words = words(s).filter { w in
-            !junk.contains(w)
-                && w.range(of: #"^v\d{1,3}$"#, options: .regularExpression) == nil
-                && w.range(of: #"^\d{2,5}x\d{2,5}$"#, options: .regularExpression) == nil
+            let lower = w.lowercased()
+            return !junk.contains(lower)
+                && lower.range(of: #"^v\d{1,3}$"#, options: .regularExpression) == nil
+                && lower.range(of: #"^\d{2,5}x\d{2,5}$"#, options: .regularExpression) == nil
         }
         let result = words.joined(separator: "-")
         return result.isEmpty ? slug(stem) : result
@@ -23,9 +24,16 @@ enum Naming {
 
     private static func words(_ s: String) -> [String] {
         s.folding(options: [.diacriticInsensitive, .widthInsensitive], locale: nil)
-            .lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
+    }
+
+    static func applyCase(_ s: String, _ style: CaseStyle) -> String {
+        switch style {
+        case .lower: s.lowercased()
+        case .asTyped: s
+        case .upper: s.uppercased()
+        }
     }
 
     static func render(_ template: String, _ values: [String: String]) -> String {

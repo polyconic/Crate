@@ -301,13 +301,18 @@ struct SettingsPane: View {
                     .font(.system(.body, design: .monospaced))
                 TextField("Strip words", text: $settings.config.junkWords, axis: .vertical)
                     .lineLimit(1...3)
+                Picker("Case", selection: $settings.config.caseStyle) {
+                    ForEach(CaseStyle.allCases, id: \.self) { style in
+                        Text(style.label).tag(style)
+                    }
+                }
             } header: {
                 Text("Naming")
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(Naming.tokens.map { "{\($0)}" }.joined(separator: "  "))
                         .font(.system(.caption, design: .monospaced))
-                    Text("Names are lowercased, spaces become hyphens, version tags and pixel sizes in the original name are dropped. Edit any name in the list to override it.")
+                    Text("Spaces become hyphens, version tags and pixel sizes in the original name are dropped. Edit any name in the list to override it.")
                         .font(.caption)
                 }
                 .foregroundStyle(.secondary)
