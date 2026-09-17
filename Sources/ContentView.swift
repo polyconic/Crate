@@ -261,7 +261,7 @@ struct SettingsPane: View {
                 TextField("Client", text: $settings.config.client, prompt: Text("Acme"))
                 HStack {
                     TextField("Project", text: $settings.config.project, prompt: Text("spring-campaign"))
-                    Toggle("Include", isOn: $settings.config.includeProjectInName)
+                    Toggle(isOn: $settings.config.includeProjectInName) { EmptyView() }
                         .toggleStyle(.checkbox)
                 }
                 HStack {
@@ -275,7 +275,7 @@ struct SettingsPane: View {
                         }
                     }
                     .disabled(settings.config.autoVersion || !settings.config.includeVersionInName)
-                    Toggle("Include", isOn: $settings.config.includeVersionInName)
+                    Toggle(isOn: $settings.config.includeVersionInName) { EmptyView() }
                         .toggleStyle(.checkbox)
                 }
                 Toggle(isOn: $settings.config.autoVersion) {
